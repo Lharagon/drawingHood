@@ -10,10 +10,23 @@ import UIKit
 import CoreMotion
 
 class ViewController: UIViewController {
-    
+    var motionManager: CMMotionManager?
     var coloring = false
     
-    @IBAction func beginPaint(_ sender: UIButton) {
+    
+    
+    @IBAction func onRealRelease(_ sender: UIButton) {
+        
+        if let manager = motionManager {
+            manager.stopDeviceMotionUpdates()
+        }
+        
+        
+        
+    }
+    
+    
+    @IBAction func onRelease(_ sender: UIButton) {
         if !coloring {
             coloring = true
         } else {
@@ -21,26 +34,35 @@ class ViewController: UIViewController {
         }
         motionManager = CMMotionManager()
         if let manager = motionManager {
-        print("We have a motion manager")
-        if manager.isDeviceMotionAvailable {
-            print("We can detect device motion!")
-            let myQ = OperationQueue()
-            manager.deviceMotionUpdateInterval = 0.25
-            if coloring {
-                manager.startDeviceMotionUpdates(to: myQ, withHandler: {
-                    (data: CMDeviceMotion?, error: Error?) in
-                    if let mydata = data {
-                        print("My pitch ", mydata.attitude.pitch)
-                        print("My roll ", mydata.attitude.roll)
-                    }
-                    if let myerror = error {
-                        print("myError", myerror)
-                        manager.stopDeviceMotionUpdates()
-                    }
-                })
-            } else {
-                manager.stopDeviceMotionUpdates()
-            }
+            print("We have a motion manager")
+            if manager.isDeviceMotionAvailable {
+                print("We can detect device motion!")
+                let myQ = OperationQueue()
+                manager.deviceMotionUpdateInterval = 1
+                if coloring {
+                    manager.startDeviceMotionUpdates(to: myQ, withHandler: {
+                        (data: CMDeviceMotion?, error: Error?) in
+                        if let mydata = data {
+                            print("My pitch ", mydata.attitude.pitch)
+                            print("My roll ", mydata.attitude.roll)
+                            let thisPitch = self.degrees(radians: mydata.attitude.pitch) * 5
+                            let thisRoll = self.degrees(radians: mydata.attitude.roll) * 5
+                            let currentPoint = CGPoint(x: thisRoll, y: thisPitch)
+                            print(currentPoint)
+                            self.drawLines(fromPoint: self.lastPoint, toPoint: currentPoint)
+                            
+                            self.lastPoint = currentPoint
+                            
+                            
+                        }
+                        if let myerror = error {
+                            print("myError", myerror)
+                            manager.stopDeviceMotionUpdates()
+                        }
+                    })
+                } else {
+                    manager.stopDeviceMotionUpdates()
+                }
             } else {
                 print("We can not detect device motion!")
             }
@@ -48,6 +70,12 @@ class ViewController: UIViewController {
             print("We do not have a motion manager")
         }
 
+        
+        
+    }
+   
+    func degrees(radians:Double) -> Double {
+        return (180/Double.pi) * radians
     }
     
     @IBOutlet weak var permView: UIImageView!
@@ -62,12 +90,12 @@ class ViewController: UIViewController {
     
 //    let colors: [(CGFloat, CGFloat, CGFloat)] = [(0,0,0)]
     
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        swiped = false
-        if let touch = touches.first {
-            lastPoint = touch.location(in: self.view)
-        }
-    }
+//    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+//        swiped = false
+//        if let touch = touches.first {
+//            lastPoint = touch.location(in: self.view)
+//        }
+//    }
     func drawLines(fromPoint: CGPoint, toPoint: CGPoint) {
         UIGraphicsBeginImageContext(self.view.frame.size)
         permView.image?.draw(in: CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height))
@@ -87,23 +115,23 @@ class ViewController: UIViewController {
         UIGraphicsEndImageContext()
     }
     
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        swiped = true
-        if let touch = touches.first {
-            let currentPoint = touch.location(in: self.view)
-            drawLines(fromPoint: lastPoint, toPoint: currentPoint)
-            
-            lastPoint = currentPoint
-        }
-    }
+//    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+//        swiped = true
+//        if let touch = touches.first {
+//            let currentPoint = touch.location(in: self.view)
+//            drawLines(fromPoint: lastPoint, toPoint: currentPoint)
+//            
+//            lastPoint = currentPoint
+//        }
+//    }
     
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if !swiped {
-            drawLines(fromPoint: lastPoint, toPoint: lastPoint)
-        }
-    }
+//    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+//        if !swiped {
+//            drawLines(fromPoint: lastPoint, toPoint: lastPoint)
+//        }
+//    }
+//
     
-    var motionManager: CMMotionManager?
 //    let interval = 0.5
     
 //    func isDevicesAvailable() -> Bool {

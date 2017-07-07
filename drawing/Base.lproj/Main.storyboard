@@ -31,8 +31,14 @@
                                 <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <state key="normal" title="Button"/>
                                 <connections>
-                                    <action selector="beginPaint:" destination="BYZ-38-t0r" eventType="touchUpInside" id="aSc-Fb-fhM"/>
+                                    <action selector="onRealRelease:" destination="BYZ-38-t0r" eventType="touchUpInside" id="sQr-ac-4Vv"/>
+                                    <action selector="onRelease:" destination="BYZ-38-t0r" eventType="touchDown" id="n8l-Z8-nd2"/>
                                 </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3lj-SV-uPK">
+                                <rect key="frame" x="269" y="576" width="40" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Other"/>
                             </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>

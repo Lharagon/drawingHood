@@ -27,31 +27,32 @@ class ViewController: UIViewController {
     
     
     @IBAction func onRelease(_ sender: UIButton) {
-        if !coloring {
-            coloring = true
-        } else {
-            coloring = false
-        }
+//        if !coloring {
+//            coloring = true
+//        } else {
+//            coloring = false
+//        }
         motionManager = CMMotionManager()
         if let manager = motionManager {
             print("We have a motion manager")
             if manager.isDeviceMotionAvailable {
                 print("We can detect device motion!")
                 let myQ = OperationQueue()
-                manager.deviceMotionUpdateInterval = 1
-                if coloring {
+                manager.deviceMotionUpdateInterval = 0.01
+//                if coloring {
                     manager.startDeviceMotionUpdates(to: myQ, withHandler: {
                         (data: CMDeviceMotion?, error: Error?) in
                         if let mydata = data {
                             print("My pitch ", mydata.attitude.pitch)
                             print("My roll ", mydata.attitude.roll)
-                            let thisPitch = self.degrees(radians: mydata.attitude.pitch) * 5
-                            let thisRoll = self.degrees(radians: mydata.attitude.roll) * 5
+                            let thisPitch = self.degrees(radians: mydata.attitude.pitch * 5) + 300
+                            let thisRoll = self.degrees(radians: mydata.attitude.roll * 2.5) + 200
                             let currentPoint = CGPoint(x: thisRoll, y: thisPitch)
                             print(currentPoint)
+                            self.lastPoint = currentPoint
                             self.drawLines(fromPoint: self.lastPoint, toPoint: currentPoint)
                             
-                            self.lastPoint = currentPoint
+                            
                             
                             
                         }
@@ -60,9 +61,9 @@ class ViewController: UIViewController {
                             manager.stopDeviceMotionUpdates()
                         }
                     })
-                } else {
-                    manager.stopDeviceMotionUpdates()
-                }
+//                } else {
+//                    manager.stopDeviceMotionUpdates()
+//                }
             } else {
                 print("We can not detect device motion!")
             }
@@ -79,7 +80,8 @@ class ViewController: UIViewController {
     }
     
     @IBOutlet weak var permView: UIImageView!
-    
+//    permView = CGAffineTransformMakeScale(0.5, 0.5)
+//    permView.layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
     var lastPoint = CGPoint.zero
     var red: CGFloat = 0.0
     var green: CGFloat = 0.0
@@ -107,7 +109,7 @@ class ViewController: UIViewController {
         
         context?.setBlendMode(CGBlendMode.normal)
         context?.setLineCap(CGLineCap.round)
-        context?.setLineWidth(10)
+        context?.setLineWidth(4)
         context?.setStrokeColor(UIColor(red: 0, green: 0, blue: 0, alpha: 1.0).cgColor)
         
         context?.strokePath()
@@ -124,13 +126,13 @@ class ViewController: UIViewController {
 //            lastPoint = currentPoint
 //        }
 //    }
-    
+//    
 //    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
 //        if !swiped {
 //            drawLines(fromPoint: lastPoint, toPoint: lastPoint)
 //        }
 //    }
-//
+
     
 //    let interval = 0.5
     

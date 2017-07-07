@@ -11,12 +11,45 @@ import CoreMotion
 
 class ViewController: UIViewController {
     
-    
+    var coloring = false
     
     @IBAction func beginPaint(_ sender: UIButton) {
-        
-        
+        if !coloring {
+            coloring = true
+        } else {
+            coloring = false
+        }
+        motionManager = CMMotionManager()
+        if let manager = motionManager {
+        print("We have a motion manager")
+        if manager.isDeviceMotionAvailable {
+            print("We can detect device motion!")
+            let myQ = OperationQueue()
+            manager.deviceMotionUpdateInterval = 0.25
+            if coloring {
+                manager.startDeviceMotionUpdates(to: myQ, withHandler: {
+                    (data: CMDeviceMotion?, error: Error?) in
+                    if let mydata = data {
+                        print("My pitch ", mydata.attitude.pitch)
+                        print("My roll ", mydata.attitude.roll)
+                    }
+                    if let myerror = error {
+                        print("myError", myerror)
+                        manager.stopDeviceMotionUpdates()
+                    }
+                })
+            } else {
+                manager.stopDeviceMotionUpdates()
+            }
+            } else {
+                print("We can not detect device motion!")
+            }
+        } else {
+            print("We do not have a motion manager")
+        }
+
     }
+    
     @IBOutlet weak var permView: UIImageView!
     
     var lastPoint = CGPoint.zero
@@ -46,7 +79,7 @@ class ViewController: UIViewController {
         
         context?.setBlendMode(CGBlendMode.normal)
         context?.setLineCap(CGLineCap.round)
-        context?.setLineWidth(5)
+        context?.setLineWidth(10)
         context?.setStrokeColor(UIColor(red: 0, green: 0, blue: 0, alpha: 1.0).cgColor)
         
         context?.strokePath()
@@ -99,19 +132,7 @@ class ViewController: UIViewController {
 //    }
     override func viewDidLoad() {
         super.viewDidLoad()
-//          THESE ARE THE CODES THAT I REMOVED IN ORDER TO MAKE DRAW APP
-        motionManager = CMMotionManager()
-        if let manager = motionManager {
-            print("We have a motion manager")
-            if manager.isDeviceMotionAvailable {
-                print("We can detect device motion!")
-            } else {
-                print("We can not detect device motion!")
-            }
-        } else {
-            print("We do not have a motion manager")
-        }
-        // Do any additional setup after loading the view, typically from a nib.
+                // Do any additional setup after loading the view, typically from a nib.
     }
 
     override func didReceiveMemoryWarning() {

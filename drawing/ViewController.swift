@@ -11,12 +11,18 @@ import CoreMotion
 
 class ViewController: UIViewController {
     var motionManager: CMMotionManager?
-    var coloring = false
+    var myQ: OperationQueue? = nil
+    var MGMT: CMMotionManager?
+    var touched = false
+    var timer = Timer()
+    var currentColor = UIColor.black
     
+    @IBOutlet weak var currentChosenColor: UILabel!
     
     
     @IBAction func onRealRelease(_ sender: UIButton) {
-        
+        touched = false
+        timer.invalidate()
         if let manager = motionManager {
             manager.stopDeviceMotionUpdates()
         }
@@ -26,53 +32,59 @@ class ViewController: UIViewController {
     }
     
     
-    @IBAction func onRelease(_ sender: UIButton) {
-//        if !coloring {
-//            coloring = true
-//        } else {
-//            coloring = false
-//        }
+    
+    @IBAction func resetFunc(_ sender: UIButton) {
+        permView.image = nil
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
         motionManager = CMMotionManager()
         if let manager = motionManager {
+            MGMT = manager
             print("We have a motion manager")
             if manager.isDeviceMotionAvailable {
                 print("We can detect device motion!")
-                let myQ = OperationQueue()
-                manager.deviceMotionUpdateInterval = 0.01
-//                if coloring {
-                    manager.startDeviceMotionUpdates(to: myQ, withHandler: {
-                        (data: CMDeviceMotion?, error: Error?) in
-                        if let mydata = data {
-                            print("My pitch ", mydata.attitude.pitch)
-                            print("My roll ", mydata.attitude.roll)
-                            let thisPitch = self.degrees(radians: mydata.attitude.pitch * 5) + 300
-                            let thisRoll = self.degrees(radians: mydata.attitude.roll * 2.5) + 200
-                            let currentPoint = CGPoint(x: thisRoll, y: thisPitch)
-                            print(currentPoint)
-                            self.lastPoint = currentPoint
-                            self.drawLines(fromPoint: self.lastPoint, toPoint: currentPoint)
-                            
-                            
-                            
-                            
-                        }
-                        if let myerror = error {
-                            print("myError", myerror)
-                            manager.stopDeviceMotionUpdates()
-                        }
-                    })
-//                } else {
-//                    manager.stopDeviceMotionUpdates()
-//                }
+                myQ = OperationQueue()
+                manager.deviceMotionUpdateInterval = 0.07
             } else {
+                let alert = UIAlertController(title: "Drawing", message: "Your device does not have the necessary sensors. You might want to try on another device.", preferredStyle: .alert)
+                present(alert, animated: true, completion: nil)
                 print("We can not detect device motion!")
             }
         } else {
             print("We do not have a motion manager")
         }
+        currentChosenColor.backgroundColor = currentColor
+    }
+    
+    @IBAction func colorChange(_ sender: UIButton) {
+        currentColor = sender.backgroundColor!
+        currentChosenColor.backgroundColor = currentColor
+    }
 
-        
-        
+    
+    @IBAction func onRelease(_ sender: UIButton) {
+        touched = true
+        MGMT!.startDeviceMotionUpdates(to: myQ!, withHandler: {
+            (data: CMDeviceMotion?, error: Error?) in
+            if let mydata = data {
+                print("My pitch ", mydata.attitude.pitch)
+                print("My roll ", mydata.attitude.roll)
+                let thisPitch = self.degrees(radians: mydata.attitude.pitch * 5) + 300
+                let thisRoll = self.degrees(radians: mydata.attitude.roll * 2.5) + 200
+                let currentPoint = CGPoint(x: thisRoll, y: thisPitch)
+                print(currentPoint)
+                self.lastPoint = currentPoint
+                DispatchQueue.main.async {
+                    self.drawLines(fromPoint: currentPoint, toPoint: self.lastPoint)
+                }
+                }
+            if let myerror = error {
+                print("myError", myerror)
+                self.MGMT!.stopDeviceMotionUpdates()
+            }
+        })
     }
    
     func degrees(radians:Double) -> Double {
@@ -80,15 +92,13 @@ class ViewController: UIViewController {
     }
     
     @IBOutlet weak var permView: UIImageView!
-//    permView = CGAffineTransformMakeScale(0.5, 0.5)
-//    permView.layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
     var lastPoint = CGPoint.zero
-    var red: CGFloat = 0.0
-    var green: CGFloat = 0.0
-    var blue: CGFloat = 0.0
-    var brushWidth: CGFloat = 10.0
-    var opacity: CGFloat = 1.0
-    var swiped = false
+//    var red: CGFloat = 0.0
+//    var green: CGFloat = 0.0
+//    var blue: CGFloat = 0.0
+//    var brushWidth: CGFloat = 10.0
+//    var opacity: CGFloat = 1.0
+//    var swiped = false
     
 //    let colors: [(CGFloat, CGFloat, CGFloat)] = [(0,0,0)]
     
@@ -98,7 +108,8 @@ class ViewController: UIViewController {
 //            lastPoint = touch.location(in: self.view)
 //        }
 //    }
-    func drawLines(fromPoint: CGPoint, toPoint: CGPoint) {
+    
+     @objc func drawLines(fromPoint: CGPoint, toPoint: CGPoint) {
         UIGraphicsBeginImageContext(self.view.frame.size)
         permView.image?.draw(in: CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height))
         let context = UIGraphicsGetCurrentContext()
@@ -109,8 +120,8 @@ class ViewController: UIViewController {
         
         context?.setBlendMode(CGBlendMode.normal)
         context?.setLineCap(CGLineCap.round)
-        context?.setLineWidth(4)
-        context?.setStrokeColor(UIColor(red: 0, green: 0, blue: 0, alpha: 1.0).cgColor)
+        context?.setLineWidth(15)
+        context?.setStrokeColor(currentColor.cgColor)
         
         context?.strokePath()
         permView.image = UIGraphicsGetImageFromCurrentImageContext()
@@ -137,8 +148,6 @@ class ViewController: UIViewController {
 //    let interval = 0.5
     
 //    func isDevicesAvailable() -> Bool {
-//        let gyroAvailable = motionManager.isGyroAvailable
-//        let accelAvailable = motionManager.isAccelerometerAvailable
 //        if !motionManager.isDeviceMotionAvailable {
 //            let alert = UIAlertController(title: "Drawing", message: "Your device does not have the necessary sensors. You might wat to try on another device.", preferredStyle: .alert)
 //            present(alert, animated: true, completion: nil)
@@ -160,10 +169,7 @@ class ViewController: UIViewController {
 //            print("Core Motion Launched")
 //        }
 //    }
-    override func viewDidLoad() {
-        super.viewDidLoad()
-                // Do any additional setup after loading the view, typically from a nib.
-    }
+   
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()

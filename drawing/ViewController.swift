@@ -46,7 +46,7 @@ class ViewController: UIViewController {
             if manager.isDeviceMotionAvailable {
                 print("We can detect device motion!")
                 myQ = OperationQueue()
-                manager.deviceMotionUpdateInterval = 0.07
+                manager.deviceMotionUpdateInterval = 0.02
             } else {
                 let alert = UIAlertController(title: "Drawing", message: "Your device does not have the necessary sensors. You might want to try on another device.", preferredStyle: .alert)
                 present(alert, animated: true, completion: nil)
